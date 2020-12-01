@@ -8,10 +8,13 @@
  */
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
-#define TRIGGER_PIN 0
+//#define TRIGGER_PIN 0
+#define TRIGGER_PIN 25 
 
 //For on board blue LED.
 const int led_gpio = 2;
+int lastLEDtime = 0;
+int nextLEDchange = 100; //time in ms.
 
 //AP Station SSID and password
 const char* SSID_AP = "Amused_Scientist";  // Amused Scientist AP.
@@ -68,7 +71,7 @@ void setup() {
   // wm.setShowDnsFields(true);    // force show dns field always
 
   // wm.setConnectTimeout(20); // how long to try to connect for before continuing
-  wm.setConfigPortalTimeout(30); // auto close configportal after n seconds
+  wm.setConfigPortalTimeout(45); // auto close configportal after n seconds
   // wm.setCaptivePortalEnable(false); // disable captive portal redirection
   // wm.setAPClientCheck(true); // avoid timeout if client connected to softap
 
@@ -96,7 +99,8 @@ void setup() {
     //if you get here you have connected to the WiFi    
     Serial.println("connected...yeey :)");
   }
-}
+  Serial.println("!!!! Continuing on to loop.");
+}// End setup
 
 void checkButton(){
   // check for button press
@@ -119,16 +123,16 @@ void checkButton(){
       wm.setConfigPortalTimeout(120);
       
       if (!wm.startConfigPortal("OnDemandAP","password")) {
-        Serial.println("failed to connect or hit timeout");
+        Serial.println("failed to connect 'OnDemandAP' or hit timeout");
         delay(3000);
         // ESP.restart();
       } else {
         //if you get here you have connected to the WiFi
-        Serial.println("connected...yeey :)");
+        Serial.println("connected to WiFi ...yeey :)");
       }
-    }
+    }// button pressed debouned success
   }
-}
+}// end check button.
 
 
 String getParam(String name){
@@ -148,8 +152,15 @@ void saveParamCallback(){
 void loop() {
   checkButton();
   // put your main code here, to run repeatedly:
-    delay(900);
-    digitalWrite(led_gpio, LOW);   // turn the LED off (HIGH is the voltage level)
-    delay(100);
-    digitalWrite(led_gpio, HIGH);   // turn the LED on (HIGH is the voltage level) 
-}
+  //Wink the LED
+  if (lastLEDtime-millis()<nextLEDchange){
+     digitalWrite(led_gpio, LOW);   // turn the LED off (HIGH is the voltage level)
+     lastLEDtime = millis();
+     nextLEDchange = 100;
+  }
+  if (lastLEDtime-millis()<nextLEDchange){
+     digitalWrite(led_gpio, HIGH);   // turn the LED on
+     lastLEDtime = millis();
+     nextLEDchange = 900;
+  }
+}// end loop
