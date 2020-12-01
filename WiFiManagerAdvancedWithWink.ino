@@ -20,6 +20,8 @@ int nextLEDchange = 100; //time in ms.
 const char* SSID_AP = "Amused_Scientist";  // Amused Scientist AP.
 const char* passwordAP = "cautionAS";  // Amused Scientist pw.
 
+const int32_t APCHANNEL = 6;          // AP channel default.
+
 WiFiManager wm; // global wm instance
 WiFiManagerParameter custom_field; // global param ( for non blocking w params )
 
@@ -52,6 +54,8 @@ void setup() {
   
   wm.addParameter(&custom_field);
   wm.setSaveParamsCallback(saveParamCallback);
+
+  wm.setWiFiAPChannel(APCHANNEL);   //FLE added 20201201
 
   // custom menu via array or vector
   // 
@@ -122,24 +126,29 @@ void checkButton(){
       Serial.println("Starting config portal");
       wm.setConfigPortalTimeout(120);
       
-      if (!wm.startConfigPortal("OnDemandAP","password")) {
-        Serial.println("failed to connect 'OnDemandAP' or hit timeout");
+//      if (!wm.startConfigPortal("OnDemandAP","password")) {
+      if (!wm.startConfigPortal(SSID_AP,passwordAP)) {
+        Serial.println("failed to connect 'SSID_AP' or hit timeout");
         delay(3000);
         // ESP.restart();
       } else {
         //if you get here you have connected to the WiFi
-        Serial.println("connected to WiFi ...yeey :)");
+        Serial.println("connected to WiFi AP:)");
+        Serial.println(SSID_AP);
+        Serial.println("!!!!!!");
       }
-    }// button pressed debouned success
+    }// button pressed debounced success
   }
 }// end check button.
 
 
 String getParam(String name){
   //read parameter from server, for customhmtl input
+  Serial.println("getParam fired with value: ");
   String value;
   if(wm.server->hasArg(name)) {
     value = wm.server->arg(name);
+    Serial.println(value);
   }
   return value;
 }
