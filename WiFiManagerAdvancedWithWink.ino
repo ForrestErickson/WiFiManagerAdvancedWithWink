@@ -20,6 +20,7 @@ int nextLEDchange = 100; //time in ms.
 const char* SSID_AP = "Amused_Scientist";  // Amused Scientist AP.
 const char* passwordAP = "cautionAS";  // Amused Scientist pw.
 
+//const int32_t APCHANNEL = 1;          // AP channel.
 const int32_t APCHANNEL = 6;          // AP channel default.
 
 WiFiManager wm; // global wm instance
@@ -33,7 +34,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);  
   delay(3000);
-  Serial.println("\n Starting");
+  Serial.println("\n Starting setup");
 
   pinMode(TRIGGER_PIN, INPUT);
   
@@ -53,9 +54,16 @@ void setup() {
   new (&custom_field) WiFiManagerParameter(custom_radio_str); // custom html input
   
   wm.addParameter(&custom_field);
+  Serial.print("Save Parameters count: ");
+  Serial.println(wm.getParametersCount());
+//  Serial.println(&&wm.getParameters(1));
   wm.setSaveParamsCallback(saveParamCallback);
 
   wm.setWiFiAPChannel(APCHANNEL);   //FLE added 20201201
+  wm.setCountry("US");   //FLE added 20201201  must be defined in WiFiSetCountry, US, JP, CN
+
+//  // set the country code for wifi settings, CN
+//    void          setCountry(String cc);
 
   // custom menu via array or vector
   // 
