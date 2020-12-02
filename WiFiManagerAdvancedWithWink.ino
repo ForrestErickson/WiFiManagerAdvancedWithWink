@@ -4,11 +4,10 @@
  * Date: 20201201
  * 
  * WiFiManager advanced demo, contains advanced configurartion options
- * Implements TRIGGEN_PIN button press, press for ondemand configportal, hold for 3 seconds for reset settings.
+ * Implements TRIGGEN_PIN button press, press for on demand configportal, hold for 3 seconds for reset settings.
  */
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
-//#define TRIGGER_PIN 0
 #define TRIGGER_PIN 25 
 
 //For on board blue LED.
@@ -19,7 +18,6 @@ int nextLEDchange = 100; //time in ms.
 //AP Station SSID and password
 const char* SSID_AP = "Amused_Scientist";  // Amused Scientist AP.
 const char* passwordAP = "cautionAS";  // Amused Scientist pw.
-
 //const int32_t APCHANNEL = 1;          // AP channel.
 const int32_t APCHANNEL = 6;          // AP channel default.
 
@@ -29,21 +27,18 @@ WiFiManagerParameter custom_field; // global param ( for non blocking w params )
 void setup() {
   pinMode(led_gpio, OUTPUT);      // set the LED pin mode
   digitalWrite(led_gpio, HIGH);   // turn the LED on (HIGH is the voltage level)
+  pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
-  WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
   Serial.begin(115200);
   Serial.setDebugOutput(true);  
   delay(3000);
   Serial.println("\n Starting setup");
 
-  pinMode(TRIGGER_PIN, INPUT_PULLUP);
-  
+    WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
   // wm.resetSettings(); // wipe settings
 
   // add a custom input field
   int customFieldLength = 40;
-
-
   // new (&custom_field) WiFiManagerParameter("customfieldid", "Custom Field Label", "Custom Field Value", customFieldLength,"placeholder=\"Custom Field Placeholder\"");
   
   // test custom html input type(checkbox)
@@ -62,8 +57,7 @@ void setup() {
   wm.setWiFiAPChannel(APCHANNEL);   //FLE added 20201201
   wm.setCountry("US");   //FLE added 20201201  must be defined in WiFiSetCountry, US, JP, CN
 
-  // custom menu via array or vector
-  // 
+  // Custom menu via array or vector  
   // menu tokens, "wifi","wifinoscan","info","param","close","sep","erase","restart","exit" (sep is seperator) (if param is in menu, params will not show up in wifi page!)
   // const char* menu[] = {"wifi","info","param","sep","restart","exit"}; 
   // wm.setMenu(menu,6);
@@ -92,21 +86,36 @@ void setup() {
   
   // wm.setBreakAfterConfig(true);   // always exit configportal even if wifi save fails
 
-  bool res;
+  int startConnectTime = 0;
+  startConnectTime = millis();
+  Serial.print("Start connection at: "); Serial.println(startConnectTime);  
+
+  bool res;                         //Catch return results.
   // res = wm.autoConnect(); // auto generated AP name from chipid
-  // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-
-    
+  // res = wm.autoConnect("AutoConnectAP"); // anonymous ap   
 //  res = wm.autoConnect("AutoConnectAP","password"); // password protected ap hard coded.
-  res = wm.autoConnect(SSID_AP,passwordAP); // password protected ap
+  res = wm.autoConnect(SSID_AP,passwordAP); // password protected ap hard coded.
 
+  
+//  res = wm.autoConnect(SSID_AP,passwordAP); // password protected ap
+  delay(10);
+  Serial.print("Finished autoConnect at: ");
+  Serial.println(millis());  
+  Serial.print("Elaped time: "); 
+  Serial.println((millis()-startConnectTime));  
+    
   if(!res) {
-    Serial.println("Failed to connect or hit timeout");
+    Serial.print("Failed to connect to ");
+//    Serial.print(SSID_AP);
+    Serial.print(wm.getConfigPortalSSID());
+//    Serial.print(wm.getID();
+    Serial.println(" hit timeout");
     // ESP.restart();
   } 
   else {
     //if you get here you have connected to the WiFi    
-    Serial.println("connected...yeey :)");
+    Serial.print("Connect to ");
+    Serial.println(wm.getConfigPortalSSID());    
   }
   Serial.println("!!!! Continuing on to loop.");
 }// End setup
