@@ -36,7 +36,7 @@ void setup() {
   delay(3000);
   Serial.println("\n Starting setup");
 
-  pinMode(TRIGGER_PIN, INPUT);
+  pinMode(TRIGGER_PIN, INPUT_PULLUP);
   
   // wm.resetSettings(); // wipe settings
 
@@ -61,9 +61,6 @@ void setup() {
 
   wm.setWiFiAPChannel(APCHANNEL);   //FLE added 20201201
   wm.setCountry("US");   //FLE added 20201201  must be defined in WiFiSetCountry, US, JP, CN
-
-//  // set the country code for wifi settings, CN
-//    void          setCountry(String cc);
 
   // custom menu via array or vector
   // 
@@ -169,15 +166,19 @@ void saveParamCallback(){
 void loop() {
   checkButton();
   // put your main code here, to run repeatedly:
+  
   //Wink the LED
-  if (lastLEDtime-millis()<nextLEDchange){
-     digitalWrite(led_gpio, LOW);   // turn the LED off (HIGH is the voltage level)
+  if ((millis()-lastLEDtime)>nextLEDchange){
+//    Serial.print("LED test >=0. "); Serial.print(lastLEDtime); Serial.print(" ");  Serial.println(millis());
+    if(digitalRead(led_gpio)==LOW){
+     digitalWrite(led_gpio, HIGH);   // turn the LED on (HIGH is the voltage level)
      lastLEDtime = millis();
-     nextLEDchange = 100;
-  }
-  if (lastLEDtime-millis()<nextLEDchange){
-     digitalWrite(led_gpio, HIGH);   // turn the LED on
+     nextLEDchange = 900; 
+    }else{
+      digitalWrite(led_gpio, LOW);   // turn the LED on (HIGH is the voltage level)
      lastLEDtime = millis();
-     nextLEDchange = 900;
-  }
+     nextLEDchange = 100; 
+    }     
+  }//LED change
+
 }// end loop
