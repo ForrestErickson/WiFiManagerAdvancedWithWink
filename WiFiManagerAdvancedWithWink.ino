@@ -8,6 +8,7 @@
  */
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
+// Once in main loop, press and hold this pin to reset stored settings for wireless AP.
 #define TRIGGER_PIN 25 
 
 //For on board blue LED.
@@ -20,6 +21,8 @@ const char* SSID_AP = "Amused_Scientist";  // Amused Scientist AP.
 const char* passwordAP = "cautionAS";  // Amused Scientist pw.
 //const int32_t APCHANNEL = 1;          // AP channel.
 const int32_t APCHANNEL = 6;          // AP channel default.
+const char* COUNTRY = "US";           // CN and JP also possible.
+const int32_t setupTimeOut = 120;      //Generous two minuets for setup to WiFi LAN
 
 WiFiManager wm; // global wm instance
 WiFiManagerParameter custom_field; // global param ( for non blocking w params )
@@ -31,8 +34,8 @@ void setup() {
 
   Serial.begin(115200);
   Serial.setDebugOutput(true);  
-  delay(3000);
-  Serial.println("\n Starting setup");
+  delay(500);
+  Serial.println("\n Starting WiFiManagerAdvancedWithWink");
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP  
   // wm.resetSettings(); // wipe settings
@@ -55,26 +58,24 @@ void setup() {
   wm.setSaveParamsCallback(saveParamCallback);
 
   wm.setWiFiAPChannel(APCHANNEL);   //FLE added 20201201
-  wm.setCountry("US");   //FLE added 20201201  must be defined in WiFiSetCountry, US, JP, CN
+  wm.setCountry(COUNTRY);   //FLE added 20201201  must be defined in WiFiSetCountry, US, JP, CN
 
-  // Custom menu via array or vector  
+  // Custom web page menu via array or vector  
   // menu tokens, "wifi","wifinoscan","info","param","close","sep","erase","restart","exit" (sep is seperator) (if param is in menu, params will not show up in wifi page!)
   // const char* menu[] = {"wifi","info","param","sep","restart","exit"}; 
   // wm.setMenu(menu,6);
   std::vector<const char *> menu = {"wifi","info","param","sep","restart","exit"};
   wm.setMenu(menu);
 
-  // set dark theme
+  // set web page dark theme
   wm.setClass("invert");
-
 
   //set static ip
   // wm.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0)); // set static ip,gw,sn
   // wm.setShowStaticFields(true); // force show static ip fields
   // wm.setShowDnsFields(true);    // force show dns field always
 
-  // wm.setConnectTimeout(20); // how long to try to connect for before continuing
-  wm.setConfigPortalTimeout(45); // auto close configportal after n seconds
+    wm.setConfigPortalTimeout(setupTimeOut); // auto close configportal after n seconds
   // wm.setCaptivePortalEnable(false); // disable captive portal redirection
   // wm.setAPClientCheck(true); // avoid timeout if client connected to softap
 
@@ -95,6 +96,9 @@ void setup() {
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap   
 //  res = wm.autoConnect("AutoConnectAP","password"); // password protected ap hard coded.
   res = wm.autoConnect(SSID_AP,passwordAP); // password protected ap hard coded.
+  IPAddress apIP(192, 168, 1, 1);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+//  wm.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
 
   
 //  res = wm.autoConnect(SSID_AP,passwordAP); // password protected ap
